@@ -1,0 +1,338 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="从TurboWarp Packager、forkphorus packager或HTMLifier生成的HTML或zip文件中提取原始的Scratch项目。">
+  <meta name="theme-color" content="#ff4c4c">
+  <title>TurboWarp、forkphorus和HTMLifier解包器</title>
+  <!-- Material-UI CSS -->
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,400,500,700&display=swap">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/material-design-icons/4.0.0/iconfont/material-icons.min.css">
+  <style>
+    /* 根元素样式 */
+    :root {
+      font-family: "Roboto", sans-serif;
+    }
+
+    /* Body 样式 */
+    body {
+      line-height: 1.6;
+      margin: 0;
+      padding: 0;
+      background-color: #f7f7f7;
+      justify-content: center;
+      align-items: center;
+    }
+
+    /* 导航栏样式 */
+    .app-bar {
+      background-color: #4af;
+      color: #fff;
+      padding: 10px;
+      display: flex;
+      align-items: center;
+    }
+
+    .app-bar h2 {
+      margin: 0;
+      flex: 1;
+    }
+
+    .nav-link {
+      cursor: pointer;
+      color: #fff;
+      text-decoration: none;
+      margin-right: 20px;
+      transition: 0.2s;
+    }
+
+    .nav-link.active {
+      font-weight: bold;
+    }
+
+    /* 主要内容样式 */
+    main {
+      max-width: 600px;
+      margin: auto;
+      background-color: #fff;
+      padding: 30px;
+      border-radius: 10px;
+      box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    }
+
+    a {
+      color: #4af;
+      text-decoration: none;
+    }
+
+    a:hover {
+      text-decoration: underline;
+    }
+
+    .file-input {
+      margin-bottom: 20px;
+      padding: 10px;
+      border: 2px solid #ccc;
+      border-radius: 5px;
+    }
+
+    .download-section a {
+      display: block;
+      margin-bottom: 10px;
+      padding: 10px;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+      background-color: #f9f9f9;
+    }
+
+    .drag-effect {
+      opacity: 0;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      box-sizing: border-box;
+      border: 10px dashed rgb(110, 110, 255);
+      pointer-events: none;
+      transition: .2s opacity;
+      border-radius: 10px;
+    }
+    .dragging .drag-effect {
+      opacity: 1;
+    }
+    body.dark-mode {
+    background-color: #333;
+    color: #fff;
+  }
+
+  .app-bar.dark-mode {
+    background-color: #222;
+  }
+
+  main.dark-mode {
+    background-color: #444;
+    color: #fff;
+  }
+
+  .file-input.dark-mode {
+    border-color: #666;
+  }
+
+  .download-section.dark-mode a {
+    border-color: #666;
+    background-color: #333;
+    color: #fff;
+  }
+
+  .drag-effect.dark-mode {
+    border-color: #aaa;
+  }
+  button {
+    padding: 8px 16px;
+    border: none;
+    border-radius: 5px;
+    background-color: #4af;
+    color: #fff;
+    font-size: 14px;
+    cursor: pointer;
+    transition: background-color 0.2s;
+  }
+
+  button:hover {
+    background-color: #38a;
+  }
+
+  button.dark-mode {
+    background-color: #444;
+  }
+
+  button.dark-mode:hover {
+    background-color: #666;
+  }
+  </style>
+</head>
+<body>
+  <!-- 导航栏 -->
+  <div class="app-bar">
+    <h2>TurboWarp项目解包器</h2>
+    <a class="nav-link" onclick="showPage('fileSelection')">文件选择</a>
+    <a class="nav-link" onclick="showPage('limitations')">限制</a>
+    <a class="nav-link" onclick="showPage('bugs')">错误</a>
+    <a class="nav-link" onclick="showPage('code')">代码</a>
+    <a class="nav-link" onclick="showPage('privacy')">隐私</a>
+    <a class="nav-link" onclick="showPage('drm')">DRM</a><!-- Dark mode toggle -->
+    <button class="dark-mode" onclick="toggleDarkMode()">切换黑暗模式</button>
+    
+    
+  </div>
+
+  <!-- 文件选择页面 -->
+  <div id="fileSelection" class="page">
+    <main>
+      <h1>TurboWarp、forkphorus和HTMLifier项目解包器</h1>
+      <p>选择或拖放由<a href="https://packager.turbowarp.org/">TurboWarp Packager</a>、<a href="https://forkphorus.github.io/packager/">forkphorus packager</a>或<a href="https://sheeptester.github.io/htmlifier/">HTMLifier</a>生成的HTML或zip文件，解包器将提取原始的Scratch项目。</p>
+      <input type="file" class="file-input" accept=".zip, .html" multiple autocomplete="off">
+      <p class="download-section"></p>
+    </main>
+  </div>
+
+  <!-- 限制页面 -->
+  <div id="limitations" class="page" style="display: none;">
+    <main>
+      <h2>限制</h2>
+      <p>拥有项目的打包版本并不一定意味着您有合法权利来解包、修改或重新分发该项目。我们不是律师，不会就此事提供法律建议。</p>
+      <p>TurboWarp Packager会从打包的项目中移除注释和脚本位置，因此您可能需要手动清理脚本。</p>
+      <p>HTMLifier会将Scratch 2项目转换为Scratch 3，因此这些项目可能会丢失一些信息。</p>
+    </main>
+  </div>
+
+  <!-- 错误页面 -->
+  <div id="bugs" class="page" style="display: none;">
+    <main>
+      <h2>错误</h2>
+      <p>请在GitHub上<a href="https://github.com/TurboWarp/unpackager/issues">报告错误</a>（比如无法解包的文件）。</p>
+    </main>
+  </div>
+
+  <!-- 代码页面 -->
+  <div id="code" class="page" style="display: none;">
+    <main>
+      <h2>代码</h2>
+      <p>解包器是<a href="https://github.com/TurboWarp/unpackager">开源的</a>。</p>
+    </main>
+  </div>
+
+  <!-- 隐私页面 -->
+  <div id="privacy" class="page" style="display: none;">
+    <main>
+      <h2>隐私</h2>
+      <p>文件在本地计算机上进行处理，永远不会发送到任何服务器。</p>
+    </main>
+  </div>
+
+  <!-- DRM页面 -->
+  <div id="drm" class="page" style="display: none;">
+    <main>
+      <h2>我不希望别人解包我的项目</h2>
+      <p>所有这些项目打包工具都是将项目文件和项目运行器嵌入到同一个文件中。当您打开该文件时，某些代码将该项目文件传递给项目运行器。解包器只是执行相同的过程。</p>
+      <p>这个问题并不局限于Scratch项目。任何基于Web的内容都存在类似的问题，例如Unity等游戏引擎。</p>
+      <p>我们知道这会让一些人感到不安，但实际上您不必担心。如果您担心别人窃取您的资源，版权法仍然存在。如果您在销售某些内容，盗版者本来就不会购买。作弊者总会找到方法。这些问题早在解包器出现之前就已经存在。</p>
+      <p>如果这仍然让您感到不安，可以研究一下“数字版权管理（DRM）”这个话题。</p>
+    </main>
+  </div>
+
+  <div class="drag-effect"></div>
+  <script src="dependencies/jszip.min.js"></script>
+  <script src="unpackager.js"></script>
+  <script>
+    (function() {
+      'use strict';
+
+      const fileInput = document.querySelector('.file-input');
+      const downloadSection = document.querySelector('.download-section');
+
+      const processFile = async (file) => {
+        const unpackaged = await unpackage(file);
+        const type = unpackaged.type;
+        const data = unpackaged.data;
+        const name = `${file.name}.${type}`;
+
+        const blob = new Blob([data], {
+          type: `application/x.scratch.${type}`
+        });
+        const url = URL.createObjectURL(blob);
+
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = name;
+        link.textContent = `下载 ${name} (${(blob.size / 1000 / 1000).toFixed(2)}MB)`;
+        downloadSection.appendChild(link);
+        link.click();
+      };
+
+      const processInput = async () => {
+        const file = fileInput.files[0];
+        if (!file) {
+          return;
+        }
+
+        while (downloadSection.firstChild) {
+          URL.revokeObjectURL(downloadSection.firstChild.href);
+          downloadSection.firstChild.remove();
+        }
+
+        try {
+          for (const file of fileInput.files) {
+            await processFile(file);
+          }
+        } catch (e) {
+          console.error(e);
+          alert(`发生错误，请报告此问题并提供您尝试解包的文件。\n\n${e}`);
+        }
+      };
+
+      fileInput.addEventListener('change', (e) => {
+        processInput();
+      });
+
+      document.documentElement.addEventListener('drop', (e) => {
+        document.documentElement.classList.remove('dragging');
+        if (e.dataTransfer.types.includes('Files')) {
+          e.preventDefault();
+          fileInput.files = e.dataTransfer.files;
+          processInput();
+        }
+      });
+
+      document.documentElement.addEventListener('dragleave', (e) => {
+        document.documentElement.classList.remove('dragging');
+      });
+
+      document.documentElement.addEventListener('dragover', (e) => {
+        if (e.dataTransfer.types.includes('Files')) {
+          document.documentElement.classList.add('dragging');
+          e.preventDefault();
+          e.dataTransfer.dropEffect = 'copy';
+        }
+      });
+    }());
+
+    function showPage(pageId) {
+      const pages = document.querySelectorAll('.page');
+      pages.forEach(page => {
+        if (page.id === pageId) {
+          page.style.display = 'block';
+        } else {
+          page.style.display = 'none';
+        }
+      });
+
+      const links = document.querySelectorAll('.nav-link');
+      links.forEach(link => {
+        link.classList.remove('active');
+        if (link.textContent.toLowerCase() === pageId.toLowerCase()) {
+          link.classList.add('active');
+        }
+      });
+    }
+    function toggleDarkMode() {
+    const body = document.body;
+    const appbar = document.querySelector('.app-bar');
+    const main = document.querySelector('main');
+    const fileInput = document.querySelector('.file-input');
+    const downloadSection = document.querySelector('.download-section');
+    const dragEffect = document.querySelector('.drag-effect');
+
+    body.classList.toggle('dark-mode');
+    appbar.classList.toggle('dark-mode');
+    main.classList.toggle('dark-mode');
+    fileInput.classList.toggle('dark-mode');
+    downloadSection.classList.toggle('dark-mode');
+    dragEffect.classList.toggle('dark-mode');
+  }
+  </script>
+</body>
+</html>
